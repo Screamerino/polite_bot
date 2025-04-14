@@ -59,7 +59,7 @@ async def get_gigachat_token():
 
 
 def read_prompt(prompt_name: str):
-    with open(f"prompts/{prompt_name}.md") as f:
+    with open(f"prompts/{prompt_name}.md", encoding="cp1251") as f:
         return f.read()
 
 
@@ -122,11 +122,13 @@ async def send_scheduled_post(bot):
 # --- Обработчики ---
 @dp.callback_query(F.data == "show_answer")
 async def show_answer(callback: types.CallbackQuery):
-    await callback.message.answer("💡 Разбор ответа будет здесь\!")
+    message = Text("💡 Разбор ответа будет здесь!")
+    await callback.message.answer(**message.as_kwargs())
 
 @dp.message(Command("start"))
 async def start(message: types.Message):
-    await message.reply("👋 Я бот для изучения вежливости с GigaChat\!")
+    message = Text("👋 Я бот для изучения вежливости с GigaChat!")
+    await message.reply(**message.as_kwargs())
 
 
 # --- Запуск ---
@@ -135,6 +137,7 @@ async def main():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(send_scheduled_post, "interval", minutes=1, args=(bot,))
     scheduler.start()
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, skip_updates=True)
 
 
