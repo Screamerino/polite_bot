@@ -58,7 +58,7 @@ async def get_gigachat_token():
 
 
 def read_prompt(prompt_name: str):
-    with open(f"prompts/{prompt_name}.md", encoding="cp1251") as f:
+    with open(f"prompts/{prompt_name}.md", encoding="utf-8") as f:
         return f.read()
 
 prompts = {
@@ -117,7 +117,7 @@ async def send_scheduled_post(bot):
         await bot.send_message(CHAT_ID, **answer_message.as_kwargs())
     else:
         msg = Text(
-            f"🎲 {Bold("Новая активность!")}\n\n{content}"
+            "🎲 ", Bold("Новая активность!"), f"\n\n{content}"
         )
         await bot.send_message(CHAT_ID, **msg.as_kwargs())
 
@@ -140,7 +140,7 @@ async def main():
     scheduler.add_job(send_scheduled_post, "interval", minutes=1, args=(bot,))
     scheduler.start()
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, skip_updates=True)
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
