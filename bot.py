@@ -6,11 +6,10 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
-from aiogram.utils.formatting import Text, Spoiler
+from aiogram.utils.formatting import Text, Spoiler, Bold
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 import requests
-import ssl
 import hashlib
 import re
 
@@ -51,8 +50,8 @@ async def get_gigachat_token():
     }
     data = {"scope": "GIGACHAT_API_PERS"}
     
-    # Для обхода SSL-сертификата (только для тестов!)
-    ssl_context = ssl._create_unverified_context()
+    # # Для обхода SSL-сертификата (только для тестов!)
+    # ssl_context = ssl._create_unverified_context()
     
     response = requests.post(url, headers=headers, data=data, verify=False)
     return response.json().get("access_token")
@@ -62,17 +61,18 @@ def read_prompt(prompt_name: str):
     with open(f"prompts/{prompt_name}.md", encoding="cp1251") as f:
         return f.read()
 
+prompts = {
+    "task": read_prompt("task"),
+    "quiz": read_prompt("quiz"),
+    "dialogue": read_prompt("dialogue")
+}
+print(prompts)
 
 # --- Генерация контента через GigaChat ---
 async def generate_gigachat_content(prompt_type):
     token = await get_gigachat_token()
     
 
-    prompts = {
-        "task": read_prompt("task"),
-        "quiz": read_prompt("quiz"),
-        "dialogue": read_prompt("dialogue")
-    }
     
     headers = {
         "Authorization": f"Bearer {token}",
@@ -116,19 +116,21 @@ async def send_scheduled_post(bot):
         )
         await bot.send_message(CHAT_ID, **answer_message.as_kwargs())
     else:
-        content = escape_md(content)
-        await bot.send_message(CHAT_ID, f"🎲 **Новая активность\!**\n\n{content}")
+        msg = Text(
+            f"🎲 {Bold("Новая активность!")}\n\n{content}"
+        )
+        await bot.send_message(CHAT_ID, **msg.as_kwargs())
 
 # --- Обработчики ---
 @dp.callback_query(F.data == "show_answer")
 async def show_answer(callback: types.CallbackQuery):
-    message = Text("💡 Разбор ответа будет здесь!")
-    await callback.message.answer(**message.as_kwargs())
+    msg = Text("💡 Разбор ответа будет здесь!")
+    await callback.message.answer(**msg.as_kwargs())
 
 @dp.message(Command("start"))
 async def start(message: types.Message):
-    message = Text("👋 Я бот для изучения вежливости с GigaChat!")
-    await message.reply(**message.as_kwargs())
+    msg = Text("👋 Я бот для изучения вежливости с GigaChat!")
+    await message.reply(**msg.as_kwargs())
 
 
 # --- Запуск ---
